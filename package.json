@@ -6,7 +6,7 @@
     "Boris Smus <boris@smus.com>"
   ],
   "description": "Use WebVR today, on mobile or desktop, without requiring a special browser build.",
-  "main": "build/webvr-polyfill.js",
+  "main": "src/main.js",
   "keywords": [
     "vr",
     "webvr"
