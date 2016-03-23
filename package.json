@@ -15,7 +15,7 @@
     "derequire": "latest",
     "watchify": "latest"
   },
-  "main": "build/webvr-polyfill.js",
+  "main": "src/main.js",
   "keywords": [
     "vr",
     "webvr"

@@ -1,0 +1,256 @@
+<!-- to run dev server: `budo src/main.js:bundle.js --live --open` -->
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<title>Web VR boilerplate</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0, shrink-to-fit=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- <link rel="manifest" href="/manifest.json"> -->
+<style>
+html {
+  bottom: 0;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+}
+
+body {
+  background-color: #000;
+  color: #fff;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  padding: 0;
+  width: 100%;
+}
+
+canvas {
+  height: 100%;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+#enterVRButton {
+  bottom: 10px;
+  cursor: pointer;
+  font-size: 30px;
+  padding: 10px 20px;
+  position: absolute;
+  right: 10px;
+  z-index: 1;
+}
+</style>
+</head>
+
+<body>
+
+  <button id="enterVRButton">Enter VR</button>
+
+</body>
+
+<script>
+/*
+ * Debug parameters.
+ */
+WebVRConfig = {
+  /**
+   * webvr-polyfill configuration
+   */
+
+  // Forces availability of VR mode.
+  //FORCE_ENABLE_VR: true, // Default: false.
+  // Complementary filter coefficient. 0 for accelerometer, 1 for gyro.
+  //K_FILTER: 0.98, // Default: 0.98.
+  // How far into the future to predict during fast motion.
+  //PREDICTION_TIME_S: 0.040, // Default: 0.040 (in seconds).
+  // Flag to disable touch panner. In case you have your own touch controls
+  //TOUCH_PANNER_DISABLED: true, // Default: false.
+  // Enable yaw panning only, disabling roll and pitch. This can be useful for
+  // panoramas with nothing interesting above or below.
+  //YAW_ONLY: true, // Default: false.
+
+  /**
+   * webvr-boilerplate configuration
+   */
+  // Forces distortion in VR mode.
+  //FORCE_DISTORTION: true, // Default: false.
+  // Override the distortion background color.
+  // DISTORTION_BGCOLOR: {x: 1, y: 0, z: 0, w: 1}, // Default: (0,0,0,1).
+  // Prevent distortion from happening.
+  //PREVENT_DISTORTION: true, // Default: false.
+  // Show eye centers for debugging.
+  // SHOW_EYE_CENTERS: true, // Default: false.
+  // Prevent the online DPDB from being fetched.
+  // NO_DPDB_FETCH: true,  // Default: false.
+  ENABLE_CARDBOARD_UI: false
+};
+</script>
+
+<!--
+  three.js 3d library
+  -->
+<script src="three.min.js"></script>
+
+<!--
+  VRControls.js acquires positional information from connected VR devices and applies the transformations to a three.js camera object.
+   -->
+<script src="VRControls.js"></script>
+
+<!--
+  VREffect.js handles stereo camera setup and rendering.
+  -->
+<script src="VREffect.js"></script>
+
+<!--
+  A polyfill for WebVR using the Device{Motion,Orientation}Event API.
+  -->
+<script src="bundle.js"></script>
+
+<script>
+// Setup three.js WebGL renderer. Note: Antialiasing is a big performance hit.
+// Only enable it if you actually need to.
+var renderer = new THREE.WebGLRenderer({antialias: true});
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.sortObjects = false;
+
+var canvas = renderer.domElement;
+
+// Append the canvas element created by the renderer to document body element.
+document.body.appendChild(canvas);
+
+// Create a three.js scene.
+var scene = new THREE.Scene();
+
+// Create a three.js camera.
+var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+
+// Apply VR headset positional data to camera.
+var controls = new THREE.VRControls(camera);
+
+// Apply VR stereo rendering to renderer.
+var effect = renderer = new THREE.VREffect(renderer);
+effect.setSize(window.innerWidth, window.innerHeight);
+
+
+// Add a repeating grid as a skybox.
+var boxWidth = 5;
+var loader = new THREE.TextureLoader();
+loader.load('img/box.png', onTextureLoaded);
+
+function onTextureLoaded(texture) {
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(boxWidth, boxWidth);
+
+  var geometry = new THREE.BoxGeometry(boxWidth, boxWidth, boxWidth);
+  var material = new THREE.MeshBasicMaterial({
+    map: texture,
+    color: 0x01BE00,
+    side: THREE.BackSide
+  });
+
+  var skybox = new THREE.Mesh(geometry, material);
+  scene.add(skybox);
+}
+
+
+// Create a VR manager helper to enter and exit VR mode.
+var params = {
+  hideButton: false, // Default: false.
+  isUndistorted: false // Default: false.
+};
+
+
+// Create 3D objects.
+var geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+var material = new THREE.MeshNormalMaterial();
+var cube = new THREE.Mesh(geometry, material);
+
+// Position cube mesh
+cube.position.z = -1;
+
+
+// Add cube mesh to your three.js scene
+scene.add(cube);
+
+// Request animation frame loop function
+var lastRender = 0;
+function animate(timestamp) {
+  var delta = Math.min(timestamp - lastRender, 500);
+  lastRender = timestamp;
+
+  // Apply rotation to cube mesh
+  cube.rotation.y += delta * 0.0006;
+
+  // Update VR headset position and apply to camera.
+  controls.update();
+
+  // Render the scene.
+  renderer.render(scene, camera);
+
+  requestAnimationFrame(animate);
+}
+
+// Kick off animation loop
+animate(performance ? performance.now() : Date.now());
+
+// Reset the position sensor when 'z' pressed.
+function onKey(event) {
+  if (event.keyCode == 90) { // z
+    controls.resetSensor();
+  }
+}
+
+window.addEventListener('keydown', onKey, true);
+
+window.addEventListener('resize', onResize);
+window.addEventListener('orientationchange', onResize);
+
+enterVRButton.addEventListener('click', function () {
+  effect.setFullScreen(true);
+});
+
+var isMobile = /iPad|iPhone|iPod/.test(navigator.platform) || /Android/.test(navigator.userAgent);
+
+function onResize () {
+  // Possible camera or canvas not injected yet.
+  if (!camera || !canvas) { return; }
+
+  // Update canvas.
+  if (!isMobile) {
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+  }
+
+  // Update camera.
+  var size = getCanvasSize(canvas, isMobile);
+  camera.aspect = size.width / size.height;
+  camera.updateProjectionMatrix();
+
+  // Notify renderer of size change.
+  renderer.setSize(size.width, size.height, true);
+}
+
+function getCanvasSize (canvas) {
+  if (isMobile) {
+    return {
+      height: window.innerHeight,
+      width: window.innerWidth
+    };
+  }
+  return {
+    height: canvas.offsetHeight,
+    width: canvas.offsetWidth
+  };
+}
+
+</script>
+
+</html>
