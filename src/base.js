@@ -168,6 +168,7 @@ VRDisplay.prototype.requestPresent = function(layer) {
       } else if (Util.isIOS()) {
         // *sigh* Just fake it.
         self.wakelock_.request();
+        self.waitingForPresent_ = false;
         self.isPresenting = true;
         self.fireVRDisplayPresentChange_();
         self.beginPresent_();
@@ -175,9 +176,13 @@ VRDisplay.prototype.requestPresent = function(layer) {
       }
     }
 
-    if (!self.waitingForPresent_ && !Util.isIOS()) {
-      Util.exitFullscreen();
-      reject(new Error('Unable to present.'));
+    if (!self.waitingForPresent_) {
+      if (Util.isIOS()) {
+        Util.exitFullscreen();
+        reject(new Error('Unable to present.'));
+      } else {
+        self.fireVRDisplayPresentChange_();
+      }
     }
   });
 };

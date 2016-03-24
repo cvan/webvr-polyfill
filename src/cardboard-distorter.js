@@ -257,6 +257,11 @@ CardboardDistorter.prototype.patch = function() {
     }
   });
 
+  // this.addEventListener('vrdisplaypresentchange', function () {
+  //   canvas.width = Util.getScreenWidth() * self.bufferScale;
+  //   canvas.height = Util.getScreenHeight() * self.bufferScale;
+  // });
+
   this.lastBoundFramebuffer = gl.getParameter(gl.FRAMEBUFFER_BINDING);
 
   if (this.lastBoundFramebuffer == null) {

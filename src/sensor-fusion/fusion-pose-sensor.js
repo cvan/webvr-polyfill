@@ -28,9 +28,6 @@ function FusionPoseSensor() {
   this.accelerometer = new THREE.Vector3();
   this.gyroscope = new THREE.Vector3();
 
-  window.addEventListener('devicemotion', this.onDeviceMotionChange_.bind(this));
-  window.addEventListener('orientationchange', this.onScreenOrientationChange_.bind(this));
-
   this.filter = new ComplementaryFilter(WebVRConfig.K_FILTER);
   this.posePredictor = new PosePredictor(WebVRConfig.PREDICTION_TIME_S);
   this.touchPanner = new TouchPanner();
@@ -45,6 +42,11 @@ function FusionPoseSensor() {
   }
 
   this.worldToScreenQ = new THREE.Quaternion();
+
+  window.addEventListener('devicemotion', this.onDeviceMotionChange_.bind(this));
+  window.addEventListener('orientationchange', this.onScreenOrientationChange_.bind(this));
+  window.addEventListener('vrdisplaypresentchange', this.onVRDisplayPresentChange_.bind(this));
+
   this.setScreenTransform_();
 
   // Keep track of a reset transform for resetSensor.
@@ -139,8 +141,11 @@ FusionPoseSensor.prototype.onDeviceMotionChange_ = function(deviceMotion) {
   this.previousTimestampS = timestampS;
 };
 
-FusionPoseSensor.prototype.onScreenOrientationChange_ =
-    function(screenOrientation) {
+FusionPoseSensor.prototype.onScreenOrientationChange_ = function () {
+  this.setScreenTransform_();
+};
+
+FusionPoseSensor.prototype.onVRDisplayPresentChange_ = function () {
   this.setScreenTransform_();
 };
 
