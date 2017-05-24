@@ -27,7 +27,7 @@ var VRDisplayPositionSensorDevice = require('./display-wrappers.js').VRDisplayPo
 
 function WebVRPolyfill() {
   this.displays = [];
-  this.devices = []; // For deprecated objects
+  this.devices = [];  // For deprecated objects.
   this.devicesPopulated = false;
   this.nativeWebVRAvailable = this.isWebVRAvailable();
   this.nativeLegacyWebVRAvailable = this.isDeprecatedWebVRAvailable();
@@ -37,7 +37,7 @@ function WebVRPolyfill() {
 
   if (!this.nativeLegacyWebVRAvailable) {
     this.enablePolyfill();
-    if (WebVRConfig.ENABLE_DEPRECATED_API) {
+    if (WebVRConfig.enableDeprecatedAPI) {
       this.enableDeprecatedPolyfill();
     }
   }
@@ -68,7 +68,7 @@ WebVRPolyfill.prototype.populateDevices = function() {
     this.displays.push(vrDisplay);
 
     // For backwards compatibility
-    if (WebVRConfig.ENABLE_DEPRECATED_API) {
+    if (WebVRConfig.enableDeprecatedAPI) {
       this.devices.push(new VRDisplayHMDDevice(vrDisplay));
       this.devices.push(new VRDisplayPositionSensorDevice(vrDisplay));
     }
@@ -80,14 +80,14 @@ WebVRPolyfill.prototype.populateDevices = function() {
     this.displays.push(vrDisplay);
 
     // For backwards compatibility
-    if (WebVRConfig.ENABLE_DEPRECATED_API) {
+    if (WebVRConfig.enableDeprecatedAPI) {
       this.devices.push(new VRDisplayHMDDevice(vrDisplay));
       this.devices.push(new VRDisplayPositionSensorDevice(vrDisplay));
     }
   }
 
   // Uncomment to add positional tracking via webcam.
-  //if (!this.isMobile() && WebVRConfig.ENABLE_DEPRECATED_API) {
+  //if (!this.isMobile() && WebVRConfig.enableDeprecatedAPI) {
   //  positionDevice = new WebcamPositionSensorVRDevice();
   //  this.devices.push(positionDevice);
   //}

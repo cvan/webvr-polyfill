@@ -45,9 +45,9 @@ canvas {
 </body>
 
 <script>
-WebVRConfig = {
-  BUFFER_SCALE: 1.0,
-};
+window.WebVRPolyfill.polyfill({
+  bufferScale: 1.0
+});
 
 document.addEventListener('touchmove', function(e) {
   e.preventDefault();

@@ -82,7 +82,7 @@ WebVRConfig = {
 
   // Scales the recommended buffer size reported by WebVR, which can improve
   // performance.
-  BUFFER_SCALE: 0.5, // Default: 0.5.
+  bufferScale: 0.5, // Default: 0.5.
 
   // Allow VRDisplay.submitFrame to change gl bindings, which is more
   // efficient if the application code will re-bind its resources on the
@@ -99,7 +99,7 @@ WebVRConfig = {
 
 Performance is critical for VR. If you find your application is too sluggish,
 consider tweaking some of the above parameters. In particular, keeping
-`BUFFER_SCALE` at 0.5 (the default) will likely help a lot.
+`bufferScale` at 0.5 (the default) will likely help a lot.
 
 ## Development
 
