@@ -34,7 +34,7 @@
 
 /**
  * @license
- * webvr-polyfill-dpdb 
+ * webvr-polyfill-dpdb
  * Copyright (c) 2017 Google
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2188,7 +2188,74 @@ FusionPoseSensor.prototype.start = function() {
     window.addEventListener('message', this.onMessageCallback_);
   }
   window.addEventListener('orientationchange', this.onOrientationChangeCallback_);
-  window.addEventListener('devicemotion', this.onDeviceMotionCallback_);
+  // window.addEventListener('devicemotion', this.onDeviceMotionCallback_);
+
+	// In Chrome for Android, Enable `Generic Sensors API` from `chrome://flags` from `Default` -> `Enabled`.
+	if ('Accelerometer' in window) {
+    var sensor = new Accelerometer();
+    sensor.start();
+    sensor.addEventListener('reading', () => {
+      // sensor.populateMatrix(mat4);
+
+      // console.log('[accelerometer]', sensor);
+
+      var timestampS = sensor.timestamp / 1000;
+
+      var deltaS = timestampS - this.previousTimestampS;
+      if (deltaS <= Util.MIN_TIMESTEP || deltaS > Util.MAX_TIMESTEP) {
+        console.warn('Invalid timestamps detected. Time step between successive ' +
+                     'accelerometer sensor samples is very small or not monotonic');
+        this.previousTimestampS = timestampS;
+        return;
+      }
+
+      this.accelerometer.set(-sensor.x, -sensor.y, -sensor.z);
+
+			this.filter.addAccelMeasurement(this.accelerometer, timestampS);
+
+      this.previousTimestampS = timestampS;
+    });
+    sensor.addEventListener('error', function(evt) {
+      if (evt.error.name === 'SecurityError') {
+        var msg = 'No permissions to use AbsoluteOrientationSensor';
+        console.error(msg);
+        alert(msg);
+      }
+    });
+  }
+
+	// In Chrome for Android, Enable `Generic Sensors API` from `chrome://flags` from `Default` -> `Enabled`.
+	if ('Gyroscope' in window) {
+    var sensor = new Gyroscope();
+    sensor.start();
+    sensor.addEventListener('reading', () => {
+      console.log('[gyroscope]', sensor);
+
+      // var rotRate = deviceMotion.rotationRate;
+      var timestampS = sensor.timestamp / 1000;
+
+      var deltaS = timestampS - this.previousTimestampS;
+      if (deltaS <= Util.MIN_TIMESTEP || deltaS > Util.MAX_TIMESTEP) {
+        console.warn('Invalid timestamps detected. Time step between successive ' +
+                     'accelerometer sensor samples is very small or not monotonic');
+        this.previousTimestampS = timestampS;
+        return;
+      }
+
+      this.gyroscope.set(sensor.x, sensor.y, sensor.z);
+
+			this.filter.addGyroMeasurement(this.gyroscope, timestampS);
+
+      this.previousTimestampS = timestampS;
+    });
+    sensor.addEventListener('error', function(evt) {
+      if (evt.error.name === 'SecurityError') {
+        var msg = 'No permissions to use AbsoluteOrientationSensor';
+        console.error(msg);
+        alert(msg);
+      }
+    });
+  }
 };
 FusionPoseSensor.prototype.stop = function() {
   window.removeEventListener('devicemotion', this.onDeviceMotionCallback_);
@@ -3036,11 +3103,11 @@ var version$1 = "0.10.0";
 var homepage = "https://github.com/googlevr/webvr-polyfill";
 var authors = ["Boris Smus <boris@smus.com>", "Brandon Jones <tojiro@gmail.com>", "Jordan Santell <jordan@jsantell.com>"];
 var description = "Use WebVR today, on mobile or desktop, without requiring a special browser build.";
-var devDependencies = { "babel-core": "^6.24.1", "babel-plugin-external-helpers": "^6.22.0", "babel-preset-env": "^1.6.1", "chai": "^3.5.0", "jsdom": "^9.12.0", "localStorage": "^1.0.3", "mocha": "^3.2.0", "rollup": "^0.52.1", "rollup-plugin-babel": "^3.0.2", "rollup-plugin-cleanup": "^2.0.0", "rollup-plugin-commonjs": "^8.2.6", "rollup-plugin-json": "^2.3.0", "rollup-plugin-node-resolve": "^3.0.0", "rollup-plugin-uglify": "^2.0.1", "semver": "^5.3.0" };
+var devDependencies = { "babel-core": "^6.24.1", "babel-plugin-external-helpers": "^6.22.0", "babel-preset-env": "^1.6.1", "chai": "^3.5.0", "jsdom": "^9.12.0", "live-server": "^1.2.0", "live-server-https": "0.0.2", "localStorage": "^1.0.3", "mocha": "^3.2.0", "rollup": "^0.52.1", "rollup-plugin-babel": "^3.0.2", "rollup-plugin-cleanup": "^2.0.0", "rollup-plugin-commonjs": "^8.2.6", "rollup-plugin-json": "^2.3.0", "rollup-plugin-node-resolve": "^3.0.0", "rollup-plugin-uglify": "^2.0.1", "semver": "^5.3.0" };
 var main = "build/webvr-polyfill.js";
 var keywords = ["vr", "webvr"];
 var license = "Apache-2.0";
-var scripts = { "build": "rollup -c", "build-min": "rollup -c rollup.config.min.js", "build-all": "npm run build && npm run build-min", "watch": "rollup -c -w", "test": "mocha -r test/init.js --compilers js:babel-core/register test/*.test.js", "preversion": "npm test", "version": "npm run build-all && git add build/*", "postversion": "git push && git push --tags && npm publish" };
+var scripts = { "start": "npm run dev", "dev": "npm-run-all --parallel watch server", "build": "rollup -c", "build-min": "rollup -c rollup.config.min.js", "build-all": "npm run build && npm run build-min", "watch": "rollup -c -w", "server": "live-server --no-browser --https=node_modules/live-server-https --watch=index.html,examples,src,node_modules", "test": "mocha -r test/init.js --compilers js:babel-core/register test/*.test.js", "preversion": "npm test", "version": "npm run build-all && git add build/*", "postversion": "git push && git push --tags && npm publish" };
 var repository = "googlevr/webvr-polyfill";
 var bugs = { "url": "https://github.com/googlevr/webvr-polyfill/issues" };
 var dependencies = { "cardboard-vr-display": "1.0.2" };
